@@ -1,0 +1,59 @@
+Protocol supports 15 nodes (plus ringmaster), 8 (16bit) registers per node
+
+Each token is 4 bytes long.
+Two bytes payload
+One byte Address/command
+One byte CRC-8
+
+Address/command byte:
+	Hi Nibble = Node ID (NID) 
+	Low Nibble = Command: MSb = store(1)/Get(0), remainder = register id
+
+Each node has a Preassigned NID
+One or mode NIDs can be used as a Group ID (GID) instead to control multiple nodes with one token.
+
+NID 0x0N = all nodes (careful!!) and GID should be "store" only commands
+Each node must receive full token before forwarding.
+
+Registers (default allocation, can be reassigned to user data)
+#0	Node control
+#1	Timer #1 / UD1
+#2	Timer #2 / UD2
+#3	Timer #3 / UD3
+#4	Timer #4 / UD4
+#5	Counter  / UD5
+#6	User defined Data
+#7	Tic Time  
+
+0x0F = TimeHack (NID=0 for all nodes, F=store in register 8)
+
+
+Node control Hi Byte
+Bit
+b0	Timer #1 enabled
+b1	Timer #2 enabled
+b2	Timer #3 enabled
+b3	Timer #4 enabled
+
+b4	
+b5	
+b6	(opt) Clear Error Status
+b7	Node enabled
+
+Node Status Low byte
+b1
+b2
+b3
+b4
+b5
+b6	Optional? Status Read (Set on get reg#0 )
+b7	Node Error(?)
+
+
+Timing  9600 bps
+1 token = 4 bytes = 0.0041667 seconds, 
+Max ring (master + 15 nodes)  0.0667 seconds for each token to make the loop.
+	each node rx full token before forwarding including processing:
+	if only 1 token on the wire, 15 tokens per second
+	if running 0.0042 second delay, 120 tokens per second.
+	Possible to hit >230 tokens per second if using a 16 byte token ring buffer, code becomes more complex.
